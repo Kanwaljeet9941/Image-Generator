@@ -1,0 +1,5 @@
+vertexai
+pillow
+flask
+flask_cors
+google-cloud-storage
