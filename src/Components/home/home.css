@@ -67,6 +67,7 @@
   position: absolute;
   top: 14%;
   left: 54%;
+  /* display: none; */
 }
 
 .image-input {
@@ -123,4 +124,8 @@
   margin-top: 20px;
   color: #ccc;
   font-weight: bold;
+}
+
+.error-message {
+  color: #fff;
 }

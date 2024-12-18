@@ -1,22 +1,22 @@
-import ImageGenerator from "./Components/home/home";
-import ImageGrid from "./Components/generated/imageGrid";
-import Navbar from "./Components/nav/nav";
+import React, { useState } from "react";
 import { BrowserRouter } from "react-router-dom";
-import { useState } from "react";
+import Navbar from "./Components/nav/nav";
+import ImageGenerator from "./Components/home/home";
+import ImageGrid from './Components/generated/imageGrid'
+
 export default function App() {
   const [generatedImages, setGeneratedImages] = useState([]);
 
-  function generateImages(data) {
-    setGeneratedImages(data.images);
+  function generateImages(images) {
+    // Ensure incoming images are appended as an array.
+    setGeneratedImages((curr) => [...curr, ...images]);
   }
+
   return (
     <BrowserRouter>
       <Navbar />
-      <ImageGenerator
-        onGenerateImages={generateImages}
-        imagesData={generateImages}
-      />
-      <ImageGrid generatedImages={generatedImages} />
+      <ImageGenerator onGenerateImages={generateImages} />
+      <ImageGrid images={generatedImages} />
     </BrowserRouter>
   );
 }

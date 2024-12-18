@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { BiImageAdd } from "react-icons/bi";
 import "./home.css";
 
-function ImageGenerator({ onGenerateImages, imagesData }) {
+function ImageGenerator({ onGenerateImages }) {
   const [inputText, setInputText] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
-  const [displayState, setDisplayState] = useState("");
   const [numImages, setNumImages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   // Handles file upload
   const handleFileChange = (e) => {
@@ -17,28 +18,28 @@ function ImageGenerator({ onGenerateImages, imagesData }) {
     }
   };
 
-  // Handles input value changes
+  // Handles text input value changes
   const handleInputChange = (e) => {
     setInputText(e.target.value);
   };
 
-  // Handles state update on button click
-  const handleSubmit = () => {
-    // Save either image, text or both in the state
-    setDisplayState(
-      selectedImage ? `Image Uploaded + Text: ${inputText}` : inputText
-    );
-    handleGenerate();
-  };
-
+  // Handles number of images selection
   const handleSelectChange = (e) => {
     setNumImages(Number(e.target.value));
   };
 
+  // Handles the image generation request
   const handleGenerate = async () => {
+    if (!inputText) {
+      setError("Please provide a text prompt.");
+      return;
+    }
+    setError(null);
+    setLoading(true);
+
     const payload = {
       prompt: inputText,
-      no_of_images: parseInt(numImages, 4),
+      no_of_images: numImages,
     };
 
     try {
@@ -54,87 +55,87 @@ function ImageGenerator({ onGenerateImages, imagesData }) {
       );
 
       const data = await response.json();
-      console.log(data);
       if (response.ok) {
-        onGenerateImages(data);
+        onGenerateImages(data.images); // Pass generated images to the parent
+        setLoading(false);
       } else {
-        console.error("Error generating images:", data.error);
+        throw new Error(data.error || "Failed to generate images.");
       }
-    } catch (error) {
-      console.error("Fetch error:", error);
+    } catch (err) {
+      setLoading(false);
+      setError(err.message);
+      console.error(err);
     }
   };
 
+  const handleSubmit = () => {
+    handleGenerate();
+  };
+
   return (
-    <div id="home">
-      {/* <div className="color-box"></div> */}
-      <div className="image-generator-container">
-        {/* Full Scaled Image Section */}
-        <div className="image-preview">
-          {selectedImage ? (
-            <img
-              src={selectedImage}
-              alt="Uploaded Preview"
-              className="uploaded-image"
-            />
-          ) : (
-            <div className="no-image">
-              <span>No Image Uploaded</span>
-            </div>
-          )}
-        </div>
-
-        {/* Input Field Section */}
-        <div className="inputs">
-          <input
-            type="text"
-            placeholder="Generate Image"
-            value={inputText}
-            onChange={handleInputChange}
-            className="input-text"
+    <div className="image-generator-container" id="home">
+      <div className="image-preview">
+        {selectedImage ? (
+          <img
+            src={selectedImage}
+            alt="Uploaded Preview"
+            className="uploaded-image"
           />
-
-          {/* Image Upload Section */}
-          <div className="file-upload">
-            <label for="image_upload">
-              <BiImageAdd className="image-icon" />
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="image-input"
-              id="image_upload"
-            />
+        ) : (
+          <div className="no-image">
+            <span>No Image Uploaded</span>
           </div>
+        )}
+      </div>
 
-          {/* Submit Button */}
-          <button onClick={handleSubmit} className="submit-button">
-            Submit
-          </button>
+      {/* Input Field Section */}
+      <div className="inputs">
+        <input
+          type="text"
+          placeholder="Enter prompt"
+          value={inputText}
+          onChange={handleInputChange}
+          className="input-text"
+        />
 
-          <div className="select-number">
-            <p>Number of images</p>
-            <select
-              value={numImages}
-              onChange={handleSelectChange}
-              className="select"
-            >
-              {[1, 2, 3, 4].map((num) => (
-                <option key={num} value={num}>
-                  {num}
-                </option>
-              ))}
-            </select>
-          </div>
+        <div className="file-upload">
+          <label htmlFor="image_upload">
+            <BiImageAdd className="image-icon" />
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="image-input"
+            id="image_upload"
+          />
         </div>
 
-        {/* Display the state under the button */}
+        <button
+          onClick={handleSubmit}
+          className="submit-button"
+          disabled={loading}
+        >
+          {loading ? "Generating..." : "Generate"}
+        </button>
 
-        <div className="display-state">
-          {displayState && <p>State: {displayState}</p>}
+        <div className="select-number">
+          <p>Number of images:</p>
+          <select
+            value={numImages}
+            onChange={handleSelectChange}
+            className="select"
+          >
+            {[1, 2, 3, 4].map((num) => (
+              <option key={num} value={num}>
+                {num}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
+
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 }
